@@ -749,8 +749,15 @@ function renderDay(){
 async function adjustLeonard(delta){
   const program = state.leonard.program;
   const set = program.sets[program.sets.length - 1];
-  if (set.reps > 20) return; // Sätze der höheren Stufe werden nicht verstellt
-  set.reps = Math.max(1, Math.min(20, set.reps + delta));
+  const full = set.reps >= 20;
+  if (delta > 0 && full){
+    // letzter Satz ist voll -> neuen Satz bei 10 Wdh. aufmachen
+    program.sets.push({ reps: 10, pu: 1, puLastInc: state.leonard.currentDay });
+  } else if (set.reps > 20){
+    return; // Sätze der höheren Stufe werden nicht verkleinert
+  } else {
+    set.reps = Math.max(1, Math.min(20, set.reps + delta));
+  }
   await saveState();
   renderDay();
 }
@@ -765,6 +772,13 @@ function frauPushupsFor(crunches){
 async function adjustFrau(delta){
   const frau = state.frau;
   const set = frau.sets[frau.sets.length - 1];
+  if (delta > 0 && set.crunches >= 20){
+    // letzter Satz ist voll -> neuen Satz aufmachen (inkl. evtl. Wechsel auf die schwerere Übung)
+    advanceFrau(frau, frau.session);
+    await saveState();
+    renderFrauDay();
+    return;
+  }
   const newCrunches = Math.max(1, Math.min(20, set.crunches + delta));
   const step = newCrunches - set.crunches;
   if (step === 0) return;
