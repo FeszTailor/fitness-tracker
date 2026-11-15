@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grundfitness Logbuch</title>
+<style>
+  :root{
+    --paper:#F6F4EE;
+    --ink:#1E2A38;
+    --ink-soft:#5C6B7A;
+    --moss:#4C6B4F;
+    --moss-soft:#DCE6DC;
+    --amber:#D98A2B;
+    --line:#D8D2C4;
+    --white:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Georgia','Iowan Old Style',serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+  .wrap{
+    max-width:480px;
+    margin:0 auto;
+    padding:28px 20px 20px;
+  }
+  .masthead{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:10px;
+    margin-bottom:6px;
+  }
+  .masthead h1{
+    font-size:22px;
+    margin:0;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  .masthead .streak{
+    font-family:'Courier New', monospace;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+  }
+
+  .tab-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .tab-btn{
+    flex:1;
+    padding:9px;
+    border:1px solid var(--line);
+    background:var(--white);
+    color:var(--ink-soft);
+    font-family:inherit;
+    font-size:14px;
+    border-radius:2px;
+    cursor:pointer;
+  }
+  .tab-btn.active{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+    font-weight:700;
+  }
+
+  .day-card{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:20px;
+    position:relative;
+  }
+  .day-title-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:2px;
+  }
+  .day-title{
+    font-size:26px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .day-date{
+    font-family:'Courier New', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .day-date input[type="date"]{
+    font-family:'Courier New', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+    background:var(--paper);
+    border-radius:2px;
+    padding:3px 5px;
+  }
+  .day-note{
+    font-size:12.5px;
+    color:var(--moss);
+    margin:2px 0 18px;
+  }
+
+  .set-block{
+    margin-bottom:18px;
+  }
+  .set-label-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:8px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:4px;
+  }
+  .set-label{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .set-remove{
+    background:none;
+    border:none;
+    font-family:'Courier New', monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:2px;
+  }
+  .exercise-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 0;
+  }
+  .exercise-row .name{
+    flex:1;
+    font-size:15px;
+  }
+  .exercise-row input[type="number"]{
+    width:56px;
+    font-family:'Courier New', monospace;
+    font-size:15px;
+    text-align:center;
+    padding:6px 2px;
+    border:1px solid var(--line);
+    border-radius:2px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .exercise-row .unit{
+    font-size:12px;
+    color:var(--ink-soft);
+    width:16px;
+  }
+  .rest-row{
+    text-align:center;
+    font-size:12px;
+    color:var(--amber);
+    padding:6px 0;
+    font-style:italic;
+  }
+
+  .complete-btn{
+    width:100%;
+    padding:14px;
+    margin-top:6px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:2px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .complete-btn:active{ transform: translateY(1px); }
+  .complete-btn.done{
+    background:var(--moss);
+  }
+
+  .adjust-row{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    margin-top:10px;
+  }
+  .adjust-row button{
+    background:none;
+    border:none;
+    font-family:'Courier New', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:4px;
+  }
+
+  .prompt-card{
+    background:var(--white);
+    border:1px solid var(--amber);
+    border-radius:2px;
+    padding:24px 20px;
+    text-align:center;
+  }
+  .prompt-card p{
+    font-size:15px;
+    line-height:1.5;
+    margin:0 0 20px;
+  }
+  .prompt-btns{
+    display:flex;
+    gap:12px;
+  }
+  .prompt-btns button{
+    flex:1;
+    padding:12px;
+    border-radius:2px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    border:none;
+  }
+  .prompt-btns .yes{
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .prompt-btns .no{
+    background:var(--paper);
+    color:var(--ink-soft);
+    border:1px solid var(--line);
+  }
+
+  .history{
+    margin-top:28px;
+  }
+  .history h2{
+    font-size:14px;
+    letter-spacing:0.3px;
+    color:var(--ink-soft);
+    font-weight:400;
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+    margin-bottom:10px;
+  }
+  .history-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    padding:7px 0;
+    border-bottom:1px dotted var(--line);
+    color:var(--ink);
+    gap:8px;
+  }
+  .history-item .h-day{
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .history-item .h-date{
+    color:var(--ink-soft);
+    flex-shrink:0;
+  }
+  .history-item .h-detail{
+    font-family:'Courier New', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:right;
+    flex:1;
+  }
+  .history-item .h-del{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:15px;
+    line-height:1;
+    padding:0 0 0 6px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .history-item .h-del:hover{
+    color:var(--amber);
+  }
+  .history-item .h-del.confirm{
+    color:var(--white);
+    background:var(--amber);
+    font-size:11px;
+    font-family:'Courier New', monospace;
+    padding:3px 7px;
+    border-radius:2px;
+  }
+  .empty-hist{
+    font-size:13px;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:10px 0;
+  }
+  .backup-row{
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    margin-top:16px;
+    padding-top:14px;
+    border-top:1px solid var(--line);
+  }
+  .backup-row button,
+  .backup-row label{
+    background:none;
+    border:none;
+    font-family:'Courier New', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-decoration:underline;
+    cursor:pointer;
+    padding:4px;
+  }
+
+  .loading{
+    text-align:center;
+    padding:40px 0;
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Grundfitness</h1>
+    <div class="streak" id="streakLabel">–</div>
+  </div>
+  <p class="sub">So / Di / Do — Bodyweight Basisprogramm</p>
+
+  <div class="tab-row">
+    <button class="tab-btn" id="tabLeonard">Oberkörper</button>
+    <button class="tab-btn" id="tabFrau">Beine</button>
+  </div>
+
+  <div id="content" class="loading">Lade Fortschritt…</div>
+
+  <div class="history">
+    <h2>Verlauf</h2>
+    <div id="historyList"></div>
+    <div class="backup-row">
+      <button id="exportBtn">Backup speichern</button>
+      <button id="copyBtn">Kopieren</button>
+      <label for="importFile" id="importLabel">Backup laden</label>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'fitness-progress';
+
+/* ==================== Programm "Ich" (Leonard) ==================== */
+
+/* ---------- Tier-Werte ---------- */
+// Tier 0: Ziel 20 Wdh. / 40s (Basis). Tier 1: 25 Wdh. / 60s (konkret vorgegeben).
+// Weitere Tiers sind extrapoliert (+5 Wdh. / +20s je Tier) und noch nicht bestätigt.
+function tierMaxReps(tier){ return 20 + tier * 5; }
+function tierMaxPlank(tier){ return 40 + tier * 20; }
+
+// Plank-Wert direkt aus dem Wdh.-Wert ableiten (robust, unabhängig vom aktuellen Tier-Zähler):
+function repsToPlank(reps){
+  if (reps <= 20) return reps * 2;
+  return 40 + (reps - 20) * 4;
+}
+
+/* ---------- Legacy-Funktionen (nur für Migration ganz alter Speicherstände) ---------- */
+function legacyPlanForDay(day){
+  if (day <= 9){ return { reps: [day + 9] }; }
+  if (day === 10){ return { reps: [20] }; }
+  let fixedSets = 1, growing = 10, d = 11;
+  while (d < day){
+    growing += 1;
+    if (growing > 20){ fixedSets += 1; growing = 10; }
+    d += 1;
+  }
+  return { reps: Array(fixedSets).fill(20).concat([growing]) };
+}
+function legacyPullUpsForDay(day, startDay){
+  const steps = Math.floor((day - startDay) / 2);
+  return Math.max(1, Math.min(5, 1 + steps));
+}
+
+/* ---------- Programm-Fortschritt (Sätze, Tier-Sprünge, Klimmzüge) ---------- */
+function freshProgram(){
+  return {
+    tier: 0,
+    sets: [ { reps: 10, pu: 1, puLastInc: 1 } ],
+    pendingSetPrompt: false,
+    tierUpgradeQueue: []
+  };
+}
+
+function pullUpCap(program){
+  return program.sets.length + 4;
+}
+
+// Wird nach jedem abgeschlossenen Tag aufgerufen und berechnet den Plan für den NÄCHSTEN Tag.
+function advanceProgram(program, nextDay){
+  const capBeforeToday = pullUpCap(program);
+  let justJumpedIdx = null;
+
+  if (program.tierUpgradeQueue.length > 0){
+    const idx = program.tierUpgradeQueue.shift();
+    const newTier = program.tier + 1;
+    program.sets[idx].reps = tierMaxReps(newTier);
+    justJumpedIdx = idx;
+    if (program.tierUpgradeQueue.length === 0){
+      program.tier = newTier;
+    }
+  } else {
+    let justCompletedIdx = null;
+    program.sets.forEach((set, i) => {
+      if (set.reps < 20){
+        set.reps += 1;
+        if (set.reps === 20 && justCompletedIdx === null) justCompletedIdx = i;
+      }
+    });
+
+    if (justCompletedIdx !== null){
+      const total = program.sets.length;
+      const fullCount = program.sets.filter(s => s.reps === 20).length;
+      if (total < 4){
+        program.sets.push({ reps: 10, pu: 1, puLastInc: nextDay });
+      } else if (fullCount === total){
+        program.pendingSetPrompt = true;
+      }
+    }
+
+    if (program.tier === 0 &&
+        program.sets.length >= 4 &&
+        program.sets.slice(0, 4).every(s => s.reps === 20)){
+      program.tierUpgradeQueue = [0, 1, 2, 3];
+    }
+  }
+
+  program.sets.forEach((set, i) => {
+    if (i === justJumpedIdx){
+      set.pu = 5;
+      set.puLastInc = nextDay;
+    } else if (nextDay - set.puLastInc >= 2 && set.pu < capBeforeToday){
+      set.pu += 1;
+      set.puLastInc = nextDay;
+    }
+  });
+}
+
+/* ==================== Programm "Beine" (Frau) ==================== */
+// Läuft nach Sätzen wie "Oberkörper": Crunches ist der Taktgeber (10→20, +1/Session).
+// JEDER neue Satz (auch Satz 2, 3, ...) startet identisch: 10/20/20/20s/5 (Crunches/Squat/Glute/Plank/Push-Ups).
+// Squat, Glute und Plank wachsen +2/Session ohne eigenen Deckel; Push-Ups +1 alle 2 Sessions,
+// gezählt relativ zum Start des jeweiligen Satzes (nicht global).
+// Sobald Crunches 20 erreicht, ist der Satz voll -> neuer Satz beginnt. Dabei wird geprüft, ob
+// Squat bzw. Glute die 40 erreicht haben: falls ja, wechselt EINMALIG (insgesamt, nicht pro Satz)
+// der Übungsname auf die schwerere Variante (Bulgarian Split Squats / einbeinige Glute Bridges).
+function freshFrauSet(startSession){
+  return {
+    crunches: 10,
+    squat: 20,
+    glute: 20,
+    plank: 20,
+    pushup: 5,
+    pushupLastInc: startSession
+  };
+}
+
+function freshFrauState(){
+  return {
+    session: 1,
+    history: [],
+    sets: [ freshFrauSet(1) ],
+    squatVariant: 'Squats',
+    squatTierDone: false,
+    gluteVariant: 'Glute Bridges',
+    gluteTierDone: false,
+    transitionNote: null
+  };
+}
+
+function advanceFrau(frau, nextSession){
+  const set = frau.sets[frau.sets.length - 1];
+
+  if (set.crunches === 20){
+    // Satz war bereits (aus dem letzten Aufruf) voll -> jetzt erst neuen Satz eröffnen,
+    // ohne in diesem Schritt noch zusätzlich zu wachsen.
+    let changedName = null;
+    if (!frau.squatTierDone && set.squat >= 40){
+      frau.squatVariant = 'Bulgarian Split Squats';
+      frau.squatTierDone = true;
+      changedName = frau.squatVariant;
+    }
+    if (!frau.gluteTierDone && set.glute >= 40){
+      frau.gluteVariant = 'einbeinige Glute Bridges';
+      frau.gluteTierDone = true;
+      changedName = changedName ? `${changedName} & ${frau.gluteVariant}` : frau.gluteVariant;
+    }
+    frau.sets.push(freshFrauSet(nextSession));
+    frau.transitionNote = changedName ? `Neue Übung ab jetzt: ${changedName}.` : null;
+    frau.session = nextSession;
+    return;
+  }
+
+  set.crunches += 1;
+  set.squat += 2;
+  set.glute += 2;
+  set.plank += 2;
+  if (nextSession - set.pushupLastInc >= 2){
+    set.pushup += 1;
+    set.pushupLastInc = nextSession;
+  }
+
+  frau.session = nextSession;
+}
+
+/* ==================== gemeinsame Helfer ==================== */
+
+function fmtDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'2-digit' });
+}
+
+function toDateInputValue(d){
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function exerciseRow(label, id, value, unit){
+  return `
+    <div class="exercise-row">
+      <div class="name">${label}</div>
+      <input type="number" min="0" id="${id}" value="${value}">
+      <div class="unit">${unit}</div>
+    </div>`;
+}
+
+let state = { active: 'leonard', leonard: { currentDay: 1, history: [], pullUpStartDay: 1, program: freshProgram() }, frau: freshFrauState() };
+
+function migrateLeonardBucket(b){
+  let changed = false;
+  if (b.pullUpStartDay === undefined){ b.pullUpStartDay = b.currentDay; changed = true; }
+  if (Array.isArray(b.history)){
+    b.history.forEach((rec, i) => {
+      if (!rec.id){ rec.id = 'legacy-' + i + '-' + Date.now(); changed = true; }
+    });
+  }
+  if (!b.program){
+    const oldPlan = legacyPlanForDay(b.currentDay);
+    const oldPullUps = legacyPullUpsForDay(b.currentDay, b.pullUpStartDay);
+    b.program = {
+      tier: 0,
+      sets: oldPlan.reps.map(r => ({ reps: r, pu: oldPullUps, puLastInc: b.currentDay })),
+      pendingSetPrompt: false,
+      tierUpgradeQueue: []
+    };
+    changed = true;
+  } else if (b.program.sets.length && typeof b.program.sets[0] !== 'object'){
+    const oldPu = b.program.pullUpValue || 1;
+    b.program.sets = b.program.sets.map(r => ({ reps: r, pu: oldPu, puLastInc: b.currentDay }));
+    delete b.program.pullUpValue;
+    delete b.program.pullUpCap;
+    delete b.program.pullUpLastIncDay;
+    changed = true;
+  }
+  return changed;
+}
+
+// Bringt state (egal aus welcher alten Version geladen/importiert) in das aktuelle Zwei-Programm-Format.
+function migrateFrauBucket(f){
+  if (Array.isArray(f.sets)){
+    if (f.sets.length && f.sets[f.sets.length - 1].plank === undefined){
+      // Zwischenstand: Sätze existierten schon, aber Plank/Push-Ups waren noch satzunabhängig
+      const oldPlank = typeof f.plank === 'number' ? f.plank : 20;
+      const oldPushup = f.pushup && typeof f.pushup.reps === 'number' ? f.pushup.reps : 5;
+      f.sets.forEach((set, i) => {
+        set.plank = oldPlank;
+        set.pushup = oldPushup;
+        set.pushupLastInc = f.session;
+      });
+      delete f.plank;
+      delete f.pushup;
+      return true;
+    }
+    return false; // schon vollständig im aktuellen Format
+  }
+  // ganz altes Flach-Format (vor jeder Satz-Umstellung): einzelnen Stand als Satz 1 übernehmen
+  const oldCrunches = typeof f.crunches === 'number' ? f.crunches : 10;
+  const oldSquat = f.squat && typeof f.squat.reps === 'number' ? f.squat.reps : 20;
+  const oldGlute = f.glute && typeof f.glute.reps === 'number' ? f.glute.reps : 20;
+  const oldPlank = typeof f.plank === 'number' ? f.plank : 20;
+  const oldPushup = f.pushup && typeof f.pushup.reps === 'number' ? f.pushup.reps : 5;
+  f.sets = [ { crunches: Math.min(20, oldCrunches), squat: oldSquat, glute: oldGlute, plank: oldPlank, pushup: oldPushup, pushupLastInc: f.session || 1 } ];
+  f.squatVariant = (f.squat && f.squat.variant) || 'Squats';
+  f.squatTierDone = !!(f.squat && f.squat.tierDone);
+  f.gluteVariant = (f.glute && f.glute.variant) || 'Glute Bridges';
+  f.gluteTierDone = !!(f.glute && f.glute.tierDone);
+  f.transitionNote = null;
+  delete f.crunches;
+  delete f.squat;
+  delete f.glute;
+  delete f.plank;
+  delete f.pushup;
+  return true;
+}
+
+function normalizeState(){
+  let needsSave = false;
+  if (!state.active){
+    // ganz altes Flat-Format (nur "Ich"-Programm ohne Umschalter) -> in leonard-Bucket verpacken
+    const bucket = {
+      currentDay: state.currentDay || 1,
+      history: state.history || [],
+      pullUpStartDay: state.pullUpStartDay,
+      program: state.program
+    };
+    state = { active: 'leonard', leonard: bucket, frau: freshFrauState() };
+    needsSave = true;
+  }
+  if (!state.frau){ state.frau = freshFrauState(); needsSave = true; }
+  if (!state.leonard){ state.leonard = { currentDay: 1, history: [], pullUpStartDay: 1, program: freshProgram() }; needsSave = true; }
+  if (migrateLeonardBucket(state.leonard)) needsSave = true;
+  if (migrateFrauBucket(state.frau)) needsSave = true;
+  return needsSave;
+}
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw){ state = JSON.parse(raw); }
+  }catch(e){
+    // kein vorheriger Fortschritt oder Zugriff nicht möglich
+  }
+  if (normalizeState()) await saveState();
+}
+
+async function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }catch(e){
+    console.error('Speichern fehlgeschlagen', e);
+  }
+}
+
+/* ==================== Rendering "Ich" ==================== */
+
+function renderDay(){
+  const program = state.leonard.program;
+  const day = state.leonard.currentDay;
+  const today = new Date();
+  const todayInputVal = toDateInputValue(today);
+
+  if (program.pendingSetPrompt){
+    const nextSetNum = program.sets.length + 1;
+    document.getElementById('content').innerHTML = `
+      <div class="prompt-card">
+        <p>Alle aktuellen Sätze stehen bei 20 Wdh.<br>Satz ${nextSetNum} zusätzlich starten (bei 10 Wdh.)?</p>
+        <div class="prompt-btns">
+          <button class="yes" id="promptYes">Ja</button>
+          <button class="no" id="promptNo">Nein</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('promptYes').addEventListener('click', () => respondToSetPrompt(true));
+    document.getElementById('promptNo').addEventListener('click', () => respondToSetPrompt(false));
+    return;
+  }
+
+  const numSets = program.sets.length;
+  let setsHtml = '';
+  program.sets.forEach((set, idx) => {
+    const s = idx + 1;
+    const plank = repsToPlank(set.reps);
+    const isExtra = idx >= 4;
+    setsHtml += `<div class="set-block">`;
+    if (numSets > 1){
+      setsHtml += `<div class="set-label-row">
+        <div class="set-label">Satz ${s}</div>
+        ${isExtra ? `<button class="set-remove" data-idx="${idx}">Satz entfernen</button>` : ''}
+      </div>`;
+    }
+    setsHtml += exerciseRow('Crunches', `crunches_${s}`, set.reps, 'x');
+    setsHtml += exerciseRow('Push-Ups', `pushups_${s}`, set.reps, 'x');
+    setsHtml += exerciseRow('Assisted Leg Raises', `legraises_${s}`, set.reps, 'x');
+    setsHtml += exerciseRow('Plank (low)', `plank_${s}`, plank, 's');
+    setsHtml += exerciseRow('Klimmzüge', `pullups_${s}`, set.pu, 'x');
+    setsHtml += `</div>`;
+    if (numSets > 1 && s < numSets){
+      setsHtml += `<div class="rest-row">— 1 min Pause —</div>`;
+    }
+  });
+
+  let noteHtml = '';
+  if (program.tierUpgradeQueue.length > 0){
+    const nextIdx = program.tierUpgradeQueue[0];
+    noteHtml = `<div class="day-note">Tier-Sprung läuft: Satz ${nextIdx + 1} wird heute auf ${tierMaxReps(program.tier + 1)} Wdh. umgestellt.</div>`;
+  }
+
+  document.getElementById('content').innerHTML = `
+    <div class="day-card">
+      <div class="day-title-row">
+        <div class="day-title">Tag ${day}</div>
+        <div class="day-date"><input type="date" id="entryDate" value="${todayInputVal}"></div>
+      </div>
+      ${noteHtml}
+      <div style="height:14px"></div>
+      ${setsHtml}
+      <button class="complete-btn" id="completeBtn">Tag abschließen ✓</button>
+      <div class="adjust-row">
+        <button id="prevDayBtn">Tag zurück</button>
+        <button id="nextDayBtn">Tag überspringen</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('completeBtn').addEventListener('click', completeDay);
+  document.getElementById('prevDayBtn').addEventListener('click', () => {
+    if (state.leonard.currentDay > 1){ state.leonard.currentDay--; saveState(); renderDay(); }
+  });
+  document.getElementById('nextDayBtn').addEventListener('click', () => {
+    state.leonard.currentDay++; saveState(); renderDay();
+  });
+  document.querySelectorAll('.set-remove').forEach(btn => {
+    btn.addEventListener('click', () => removeSet(Number(btn.dataset.idx)));
+  });
+}
+
+async function respondToSetPrompt(addSet){
+  const program = state.leonard.program;
+  program.pendingSetPrompt = false;
+  if (addSet){
+    program.sets.push({ reps: 10, pu: 1, puLastInc: state.leonard.currentDay });
+  }
+  await saveState();
+  renderDay();
+}
+
+async function removeSet(idx){
+  const program = state.leonard.program;
+  program.sets.splice(idx, 1);
+  await saveState();
+  renderDay();
+}
+
+async function completeDay(){
+  const program = state.leonard.program;
+  const day = state.leonard.currentDay;
+  const dateInput = document.getElementById('entryDate').value;
+  const chosenDate = dateInput ? new Date(dateInput + 'T12:00:00').toISOString() : new Date().toISOString();
+  const record = {
+    id: Date.now() + '-' + Math.floor(Math.random() * 1000),
+    day,
+    date: chosenDate,
+    sets: program.sets.map((set, idx) => {
+      const s = idx + 1;
+      return {
+        crunches: Number(document.getElementById(`crunches_${s}`).value),
+        pushups: Number(document.getElementById(`pushups_${s}`).value),
+        legraises: Number(document.getElementById(`legraises_${s}`).value),
+        plank: Number(document.getElementById(`plank_${s}`).value),
+        pullups: Number(document.getElementById(`pullups_${s}`).value),
+      };
+    })
+  };
+  state.leonard.history.unshift(record);
+  state.leonard.currentDay++;
+  advanceProgram(program, state.leonard.currentDay);
+  await saveState();
+
+  const btn = document.getElementById('completeBtn');
+  btn.textContent = 'Gespeichert ✓';
+  btn.classList.add('done');
+  setTimeout(() => { render(); renderHistory(); }, 500);
+}
+
+/* ==================== Rendering "Frau" ==================== */
+
+function renderFrauDay(){
+  const frau = state.frau;
+  const today = new Date();
+  const todayInputVal = toDateInputValue(today);
+  const numSets = frau.sets.length;
+
+  let setsHtml = '';
+  frau.sets.forEach((set, idx) => {
+    const s = idx + 1;
+    setsHtml += `<div class="set-block">`;
+    if (numSets > 1){
+      setsHtml += `<div class="set-label-row"><div class="set-label">Satz ${s}</div></div>`;
+    }
+    setsHtml += exerciseRow('Crunches', `frau_crunches_${s}`, set.crunches, 'x');
+    setsHtml += exerciseRow(frau.squatVariant, `frau_squat_${s}`, set.squat, 'x');
+    setsHtml += exerciseRow(frau.gluteVariant, `frau_glute_${s}`, set.glute, 'x');
+    setsHtml += exerciseRow('Plank', `frau_plank_${s}`, set.plank, 's');
+    setsHtml += exerciseRow('Push-Ups', `frau_pushup_${s}`, set.pushup, 'x');
+    setsHtml += `</div>`;
+    if (numSets > 1 && s < numSets){
+      setsHtml += `<div class="rest-row">— 1 min Pause —</div>`;
+    }
+  });
+
+  const noteHtml = frau.transitionNote ? `<div class="day-note">${frau.transitionNote}</div>` : '';
+
+  document.getElementById('content').innerHTML = `
+    <div class="day-card">
+      <div class="day-title-row">
+        <div class="day-title">Session ${frau.session}</div>
+        <div class="day-date"><input type="date" id="entryDate" value="${todayInputVal}"></div>
+      </div>
+      ${noteHtml}
+      <div style="height:14px"></div>
+      ${setsHtml}
+      <button class="complete-btn" id="completeBtn">Session abschließen ✓</button>
+      <div class="adjust-row">
+        <button id="prevDayBtn">Session zurück</button>
+        <button id="nextDayBtn">Session überspringen</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('completeBtn').addEventListener('click', completeFrauDay);
+  document.getElementById('prevDayBtn').addEventListener('click', () => {
+    if (state.frau.session > 1){ state.frau.session--; saveState(); renderFrauDay(); }
+  });
+  document.getElementById('nextDayBtn').addEventListener('click', () => {
+    state.frau.session++; saveState(); renderFrauDay();
+  });
+}
+
+async function completeFrauDay(){
+  const frau = state.frau;
+  const dateInput = document.getElementById('entryDate').value;
+  const chosenDate = dateInput ? new Date(dateInput + 'T12:00:00').toISOString() : new Date().toISOString();
+  const record = {
+    id: Date.now() + '-' + Math.floor(Math.random() * 1000),
+    day: frau.session,
+    date: chosenDate,
+    sets: frau.sets.map((set, idx) => {
+      const s = idx + 1;
+      return {
+        crunches: Number(document.getElementById(`frau_crunches_${s}`).value),
+        squat: Number(document.getElementById(`frau_squat_${s}`).value),
+        glute: Number(document.getElementById(`frau_glute_${s}`).value),
+        plank: Number(document.getElementById(`frau_plank_${s}`).value),
+        pushup: Number(document.getElementById(`frau_pushup_${s}`).value),
+      };
+    }),
+    squatVariant: frau.squatVariant,
+    gluteVariant: frau.gluteVariant
+  };
+  frau.history.unshift(record);
+  frau.transitionNote = null; // wurde gerade angezeigt/bestätigt -> für die nächste Session ausblenden
+  frau.session++;
+  advanceFrau(frau, frau.session);
+  await saveState();
+
+  const btn = document.getElementById('completeBtn');
+  btn.textContent = 'Gespeichert ✓';
+  btn.classList.add('done');
+  setTimeout(() => { render(); renderHistory(); }, 500);
+}
+
+/* ==================== gemeinsames Rendering / Umschalten ==================== */
+
+function activeBucket(){
+  return state.active === 'leonard' ? state.leonard : state.frau;
+}
+
+function render(){
+  if (state.active === 'leonard'){ renderDay(); } else { renderFrauDay(); }
+  document.getElementById('streakLabel').textContent = activeBucket().history.length + ' Einheiten';
+}
+
+function updateTabUI(){
+  document.getElementById('tabLeonard').classList.toggle('active', state.active === 'leonard');
+  document.getElementById('tabFrau').classList.toggle('active', state.active === 'frau');
+}
+
+async function switchProgram(which){
+  if (state.active === which) return;
+  state.active = which;
+  await saveState();
+  updateTabUI();
+  render();
+  renderHistory();
+}
+
+/* ==================== Verlauf (beide Programme) ==================== */
+
+let pendingDeleteId = null;
+
+function renderHistory(){
+  const list = document.getElementById('historyList');
+  const bucket = activeBucket();
+  const dayLabel = state.active === 'leonard' ? 'Tag' : 'Session';
+
+  if (bucket.history.length === 0){
+    list.innerHTML = `<div class="empty-hist">Noch keine Einheit eingetragen.</div>`;
+    return;
+  }
+
+  list.innerHTML = bucket.history.map((rec, idx) => {
+    let detail;
+    if (state.active === 'leonard'){
+      detail = rec.sets.map(s => `${s.crunches}/${s.pushups}/${s.legraises}/${s.plank}s${s.pullups !== undefined ? '/' + s.pullups : ''}`).join(' + ');
+    } else if (Array.isArray(rec.sets) && rec.sets.length && rec.sets[0].plank !== undefined){
+      detail = rec.sets.map(s => `${s.crunches}/${s.squat}/${s.glute}/${s.plank}s/${s.pushup}`).join(' + ');
+    } else if (Array.isArray(rec.sets)){
+      // Verlaufseintrag aus dem Zwischenstand (Plank/Push-Ups noch satzunabhängig gespeichert)
+      detail = rec.sets.map(s => `${s.crunches}/${s.squat}/${s.glute}`).join(' + ') + ` + ${rec.plank}s/${rec.pushup}`;
+    } else {
+      // Verlaufseintrag aus der alten (Nicht-Satz-)Version von "Beine"
+      detail = `${rec.crunches}/${rec.squat}/${rec.glute}/${rec.plank}s/${rec.pushup}`;
+    }
+    const isPending = pendingDeleteId === rec.id;
+    return `
+      <div class="history-item">
+        <div class="h-day">${dayLabel} ${rec.day}</div>
+        <div class="h-date">${fmtDate(rec.date)}</div>
+        <div class="h-detail">${detail}</div>
+        <button class="h-del${isPending ? ' confirm' : ''}" data-id="${rec.id}" data-idx="${idx}">${isPending ? 'Sicher?' : '✕'}</button>
+      </div>`;
+  }).join('');
+
+  list.querySelectorAll('.h-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      if (pendingDeleteId === id){
+        deleteHistoryEntry(id, Number(btn.dataset.idx));
+      } else {
+        pendingDeleteId = id;
+        renderHistory();
+        setTimeout(() => {
+          if (pendingDeleteId === id){
+            pendingDeleteId = null;
+            renderHistory();
+          }
+        }, 3000);
+      }
+    });
+  });
+}
+
+async function deleteHistoryEntry(id, idx){
+  pendingDeleteId = null;
+  const bucket = activeBucket();
+  bucket.history = bucket.history.filter(r => r.id !== id);
+  if (idx === 0){
+    if (state.active === 'leonard'){
+      bucket.currentDay = Math.max(1, bucket.currentDay - 1);
+    } else {
+      bucket.session = Math.max(1, bucket.session - 1);
+    }
+  }
+  await saveState();
+  render();
+  renderHistory();
+}
+
+/* ==================== Backup ==================== */
+
+async function exportBackup(){
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+  const filename = `${dateStr}-fitness-backup.json`;
+  const jsonStr = JSON.stringify(state, null, 2);
+
+  try{
+    const file = new File([jsonStr], filename, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({ files: [file], title: filename });
+      return;
+    }
+  }catch(e){
+    // abgebrochen oder nicht unterstützt -> Fallback unten
+  }
+
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function copyBackup(){
+  const jsonStr = JSON.stringify(state, null, 2);
+  const btn = document.getElementById('copyBtn');
+  try{
+    await navigator.clipboard.writeText(jsonStr);
+    const original = btn.textContent;
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }catch(e){
+    alert('Kopieren nicht möglich. Bitte manuell aus der Konsole exportieren.');
+  }
+}
+
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try{
+      const parsed = JSON.parse(e.target.result);
+      const looksValid = parsed.active || (typeof parsed.currentDay === 'number' && Array.isArray(parsed.history));
+      if (!looksValid){
+        alert('Diese Datei sieht nicht wie ein gültiges Backup aus.');
+        return;
+      }
+      state = parsed;
+      normalizeState();
+      await saveState();
+      updateTabUI();
+      render();
+      renderHistory();
+    }catch(err){
+      alert('Backup konnte nicht gelesen werden.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ==================== Start ==================== */
+
+async function init(){
+  await loadState();
+  updateTabUI();
+  render();
+  renderHistory();
+  document.getElementById('tabLeonard').addEventListener('click', () => switchProgram('leonard'));
+  document.getElementById('tabFrau').addEventListener('click', () => switchProgram('frau'));
+  document.getElementById('exportBtn').addEventListener('click', exportBackup);
+  document.getElementById('copyBtn').addEventListener('click', copyBackup);
+  document.getElementById('importFile').addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]){
+      importBackup(e.target.files[0]);
+      e.target.value = '';
+    }
+  });
+}
+init();
+</script>
+</body>
+</html>
