@@ -2,367 +2,474 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grundfitness Logbuch</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Grundfitness</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Grundfitness">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#EEF1F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A0F1F" media="(prefers-color-scheme: dark)">
 <style>
   :root{
-    --paper:#F6F4EE;
-    --ink:#1E2A38;
-    --ink-soft:#5C6B7A;
-    --moss:#4C6B4F;
-    --moss-soft:#DCE6DC;
-    --amber:#D98A2B;
-    --line:#D8D2C4;
-    --white:#FFFFFF;
+    --bg:#EEF1F6;
+    --surface:#FFFFFF;
+    --surface-2:#F3F5FA;
+    --ink:#0E1730;
+    --muted:#5E6A85;
+    --line:#DFE4EE;
+    --ok:#178A5C;
+    --accent:#2446F5;
+    --accent-soft:#E4E9FF;
+    --on-accent:#FFFFFF;
+    --shadow:0 1px 2px rgba(14,23,48,.05), 0 8px 24px rgba(14,23,48,.06);
+    --font:ui-rounded, "SF Pro Rounded", -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+  }
+  body[data-program="frau"]{
+    --bg:#F8F0F3;
+    --surface:#FFFFFF;
+    --surface-2:#F9EEF2;
+    --ink:#2B1A24;
+    --muted:#7B6672;
+    --line:#EDDDE4;
+    --accent:#B5386B;
+    --accent-soft:#FBE3EC;
+    --shadow:0 1px 2px rgba(74,20,45,.05), 0 8px 24px rgba(74,20,45,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0A0F1F;
+      --surface:#141B31;
+      --surface-2:#1C2542;
+      --ink:#EEF2FF;
+      --muted:#97A3C3;
+      --line:#27314F;
+      --ok:#4ADE9A;
+      --accent:#7C96FF;
+      --accent-soft:#1E2A57;
+      --on-accent:#0A0F1F;
+      --shadow:none;
+    }
+    body[data-program="frau"]{
+      --bg:#170E14;
+      --surface:#23161E;
+      --surface-2:#2F1E28;
+      --ink:#FBEFF4;
+      --muted:#B9A1AD;
+      --line:#3C2833;
+      --accent:#F08BB0;
+      --accent-soft:#4A2236;
+      --on-accent:#2B0F1C;
+      --shadow:none;
+    }
   }
   *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
   body{
     margin:0;
-    background:var(--paper);
+    background:var(--bg);
     color:var(--ink);
-    font-family:'Georgia','Iowan Old Style',serif;
+    font-family:var(--font);
+    font-size:16px;
+    line-height:1.35;
     -webkit-font-smoothing:antialiased;
-    padding-bottom:60px;
+    -webkit-tap-highlight-color:transparent;
   }
+  button, input{font-family:inherit; color:inherit;}
+  button{cursor:pointer;}
+  :focus-visible{outline:3px solid var(--accent); outline-offset:2px;}
+
   .wrap{
     max-width:480px;
     margin:0 auto;
-    padding:28px 20px 20px;
+    padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 120px);
   }
-  .masthead{
+
+  /* Kopf */
+  .topbar{
     display:flex;
     justify-content:space-between;
     align-items:baseline;
-    border-bottom:2px solid var(--ink);
-    padding-bottom:10px;
-    margin-bottom:6px;
+    margin-bottom:12px;
   }
-  .masthead h1{
-    font-size:22px;
-    margin:0;
+  .topbar h1{
+    font-size:17px;
     font-weight:700;
-    letter-spacing:0.2px;
+    margin:0;
   }
-  .masthead .streak{
-    font-family:'Courier New', monospace;
-    font-size:13px;
-    color:var(--ink-soft);
-  }
-  .sub{
-    font-size:13px;
-    color:var(--ink-soft);
-    margin:0 0 16px;
+  .count{
+    font-size:14px;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
   }
 
-  .tab-row{
-    display:flex;
-    gap:8px;
+  /* Umschalter */
+  .segmented{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px;
+    padding:4px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:14px;
     margin-bottom:22px;
   }
   .tab-btn{
-    flex:1;
-    padding:9px;
-    border:1px solid var(--line);
-    background:var(--white);
-    color:var(--ink-soft);
-    font-family:inherit;
-    font-size:14px;
-    border-radius:2px;
-    cursor:pointer;
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-size:16px;
+    font-weight:600;
+    padding:10px 8px;
+    border-radius:10px;
+    min-height:44px;
   }
   .tab-btn.active{
-    background:var(--ink);
-    color:var(--paper);
-    border-color:var(--ink);
-    font-weight:700;
+    background:var(--accent);
+    color:var(--on-accent);
   }
 
-  .day-card{
-    background:var(--white);
-    border:1px solid var(--line);
-    border-radius:2px;
-    padding:20px;
-    position:relative;
-  }
-  .day-title-row{
+  /* Tag + Datum + Woche */
+  .hero-meta{
     display:flex;
-    align-items:baseline;
     justify-content:space-between;
-    margin-bottom:2px;
+    align-items:center;
+    gap:12px;
+    margin:10px 0 18px;
   }
-  .day-title{
-    font-size:26px;
-    font-weight:700;
+  .hero-title{
+    font-size:44px;
+    font-weight:800;
+    line-height:1;
+    letter-spacing:-0.5px;
+    margin:0;
+    white-space:nowrap;
     font-variant-numeric:tabular-nums;
   }
-  .day-date{
-    font-family:'Courier New', monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-  .day-date input[type="date"]{
-    font-family:'Courier New', monospace;
-    font-size:12px;
-    color:var(--ink-soft);
+  .date-field{flex:0 1 auto; min-width:0;}
+  .date-field input{
+    width:158px; max-width:100%;
+    font-size:16px;
+    font-weight:600;
     border:1px solid var(--line);
-    background:var(--paper);
-    border-radius:2px;
-    padding:3px 5px;
+    background:var(--surface);
+    border-radius:12px;
+    padding:9px 10px;
+    min-height:44px;
+    color:var(--ink);
+    color-scheme:light dark;
   }
-  .day-note{
-    font-size:12.5px;
-    color:var(--moss);
-    margin:2px 0 18px;
+  .week{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    white-space:nowrap;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .week-dots{display:flex; gap:6px;}
+  .week-dot{
+    width:22px; height:8px;
+    border-radius:4px;
+    background:var(--line);
+  }
+  .week-dot.done{background:var(--accent);}
+
+  .note{
+    background:var(--accent-soft);
+    color:var(--ink);
+    border-radius:14px;
+    padding:12px 14px;
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:14px;
   }
 
-  .set-block{
-    margin-bottom:18px;
+  /* Satz-Karten */
+  .set{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
   }
-  .set-label-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    margin-bottom:8px;
-    border-bottom:1px solid var(--line);
-    padding-bottom:4px;
-  }
-  .set-label{
-    font-size:12px;
-    color:var(--ink-soft);
-  }
-  .set-remove{
-    background:none;
-    border:none;
-    font-family:'Courier New', monospace;
-    font-size:11px;
-    color:var(--ink-soft);
-    text-decoration:underline;
-    cursor:pointer;
-    padding:2px;
-  }
-  .exercise-row{
-    display:flex;
+  .set > summary{
+    list-style:none;
+    display:grid;
+    grid-template-columns:auto 1fr auto;
     align-items:center;
     gap:10px;
+    padding:14px 16px;
+    min-height:52px;
+    cursor:pointer;
+  }
+  .set > summary::-webkit-details-marker{display:none;}
+  .set-name{font-size:17px; font-weight:700;}
+  .set-sum{
+    font-size:14px;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .set[open] .set-sum{visibility:hidden;}
+  .set-state{
+    display:flex; align-items:center; gap:6px;
+    font-size:14px; font-weight:600;
+    color:var(--muted);
+    font-variant-numeric:tabular-nums;
+  }
+  .set-state.full{color:var(--ok);}
+  .set-state svg{width:16px; height:16px;}
+  .chev{width:18px; height:18px; color:var(--muted); transition:transform .15s ease;}
+  .set[open] .chev{transform:rotate(180deg);}
+  .bar{
+    height:6px;
+    background:var(--surface-2);
+    margin:0 16px;
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .bar > i{
+    display:block; height:100%;
+    background:var(--accent);
+    border-radius:3px;
+    transition:width .25s ease;
+  }
+  .set-body{padding:6px 16px 10px;}
+  .ex{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:7px 0;
+  }
+  .ex + .ex{border-top:1px solid var(--line);}
+  .ex-name{font-size:16px; font-weight:500;}
+  .ex-field{display:flex; align-items:baseline; gap:6px;}
+  .ex-field input{
+    width:68px;
+    font-size:22px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    text-align:center;
+    padding:6px 4px;
+    border:1px solid transparent;
+    border-radius:12px;
+    background:var(--surface-2);
+    -moz-appearance:textfield;
+    appearance:textfield;
+  }
+  .ex-field input::-webkit-outer-spin-button,
+  .ex-field input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .ex-field input:focus{border-color:var(--accent); outline:none; background:var(--surface);}
+  .ex-unit{font-size:13px; color:var(--muted); width:30px;}
+  .set-remove{
+    display:block;
+    margin:8px 0 2px auto;
+    background:none; border:none;
+    font-size:14px; font-weight:600;
+    color:var(--muted);
+    text-decoration:underline;
     padding:8px 0;
   }
-  .exercise-row .name{
-    flex:1;
-    font-size:15px;
-  }
-  .exercise-row input[type="number"]{
-    width:56px;
-    font-family:'Courier New', monospace;
-    font-size:15px;
+  .rest{
     text-align:center;
-    padding:6px 2px;
-    border:1px solid var(--line);
-    border-radius:2px;
-    background:var(--paper);
-    color:var(--ink);
-  }
-  .exercise-row .unit{
-    font-size:12px;
-    color:var(--ink-soft);
-    width:16px;
-  }
-  .rest-row{
-    text-align:center;
-    font-size:12px;
-    color:var(--amber);
-    padding:6px 0;
-    font-style:italic;
-  }
-
-  .complete-btn{
-    width:100%;
-    padding:14px;
-    margin-top:6px;
-    background:var(--ink);
-    color:var(--paper);
-    border:none;
-    border-radius:2px;
-    font-family:inherit;
-    font-size:15px;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .complete-btn:active{ transform: translateY(1px); }
-  .complete-btn.done{
-    background:var(--moss);
-  }
-
-  .adjust-row{
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:4px 14px;
-    margin-top:10px;
-  }
-  .adjust-row button{
-    background:none;
-    border:none;
-    font-family:'Courier New', monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-    text-decoration:underline;
-    cursor:pointer;
-    padding:4px;
-  }
-
-  .prompt-card{
-    background:var(--white);
-    border:1px solid var(--amber);
-    border-radius:2px;
-    padding:24px 20px;
-    text-align:center;
-  }
-  .prompt-card p{
-    font-size:15px;
-    line-height:1.5;
-    margin:0 0 20px;
-  }
-  .prompt-btns{
-    display:flex;
-    gap:12px;
-  }
-  .prompt-btns button{
-    flex:1;
-    padding:12px;
-    border-radius:2px;
-    font-family:inherit;
-    font-size:15px;
-    font-weight:700;
-    cursor:pointer;
-    border:none;
-  }
-  .prompt-btns .yes{
-    background:var(--ink);
-    color:var(--paper);
-  }
-  .prompt-btns .no{
-    background:var(--paper);
-    color:var(--ink-soft);
-    border:1px solid var(--line);
-  }
-
-  .history{
-    margin-top:28px;
-  }
-  .history h2{
-    font-size:14px;
-    letter-spacing:0.3px;
-    color:var(--ink-soft);
-    font-weight:400;
-    border-bottom:1px solid var(--line);
-    padding-bottom:6px;
-    margin-bottom:10px;
-  }
-  .history-item{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
     font-size:13px;
-    padding:7px 0;
-    border-bottom:1px dotted var(--line);
-    color:var(--ink);
-    gap:8px;
+    font-weight:600;
+    color:var(--muted);
+    padding:9px 0;
   }
-  .history-item .h-day{
-    font-weight:700;
-    flex-shrink:0;
-  }
-  .history-item .h-date{
-    color:var(--ink-soft);
-    flex-shrink:0;
-  }
-  .history-item .h-detail{
-    font-family:'Courier New', monospace;
-    font-size:11.5px;
-    color:var(--ink-soft);
-    text-align:right;
-    flex:1;
-  }
-  .history-item .h-del{
-    background:none;
-    border:none;
-    color:var(--ink-soft);
-    font-size:15px;
-    line-height:1;
-    padding:0 0 0 6px;
-    cursor:pointer;
-    flex-shrink:0;
-  }
-  .history-item .h-del:hover{
-    color:var(--amber);
-  }
-  .history-item .h-del.confirm{
-    color:var(--white);
-    background:var(--amber);
-    font-size:11px;
-    font-family:'Courier New', monospace;
-    padding:3px 7px;
-    border-radius:2px;
-  }
-  .empty-hist{
-    font-size:13px;
-    color:var(--ink-soft);
-    font-style:italic;
-    padding:10px 0;
-  }
-  .backup-row{
-    display:flex;
-    justify-content:center;
-    gap:18px;
+
+  /* Plan anpassen */
+  .adjust{
     margin-top:16px;
-    padding-top:14px;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:var(--surface);
+  }
+  .adjust > summary{
+    list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 16px;
+    min-height:52px;
+    font-size:16px; font-weight:600;
+    cursor:pointer;
+  }
+  .adjust > summary::-webkit-details-marker{display:none;}
+  .adjust[open] .chev{transform:rotate(180deg);}
+  .adjust-body{padding:0 16px 14px;}
+  .adjust-row{
+    display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px 12px;
+    padding:12px 0;
     border-top:1px solid var(--line);
   }
-  .backup-row button,
-  .backup-row label{
-    background:none;
-    border:none;
-    font-family:'Courier New', monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-    text-decoration:underline;
-    cursor:pointer;
-    padding:4px;
+  .adjust-text{flex:1 1 170px;}
+  .adjust-text b{display:block; font-size:15px; font-weight:600;}
+  .adjust-text span{display:block; font-size:13px; color:var(--muted);}
+  .adjust-btns{display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    border-radius:12px;
+    min-height:44px; min-width:52px;
+    padding:8px 14px;
+    font-size:16px; font-weight:700;
+    font-variant-numeric:tabular-nums;
   }
+  .pill:active{background:var(--accent-soft);}
 
-  .loading{
-    text-align:center;
-    padding:40px 0;
-    color:var(--ink-soft);
-    font-size:13px;
+  /* Abschließen */
+  .cta-bar{
+    position:fixed; left:0; right:0; bottom:0;
+    padding:12px 16px calc(env(safe-area-inset-bottom) + 12px);
+    background:linear-gradient(to top, var(--bg) 70%, transparent);
+    z-index:5;
+  }
+  .complete-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; max-width:448px; margin:0 auto;
+    min-height:56px;
+    border:none; border-radius:18px;
+    background:var(--accent); color:var(--on-accent);
+    font-size:18px; font-weight:700;
+  }
+  .complete-btn:active{transform:scale(.985);}
+  .complete-btn.done{background:var(--ok); color:var(--on-accent);}
+  .complete-btn svg{width:20px; height:20px;}
+
+  /* Frage: neuer Satz */
+  .prompt-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:var(--shadow);
+    padding:22px 18px 18px;
+  }
+  .prompt-card h2{font-size:22px; font-weight:800; margin:0 0 6px;}
+  .prompt-card p{font-size:16px; color:var(--muted); margin:0 0 18px;}
+  .prompt-btns{display:grid; gap:8px;}
+  .prompt-btns button{
+    min-height:52px; border-radius:14px;
+    font-size:17px; font-weight:700;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+  }
+  .prompt-btns .yes{background:var(--accent); color:var(--on-accent); border-color:transparent;}
+
+  /* Verlauf */
+  .section-title{
+    font-size:20px; font-weight:800;
+    margin:34px 0 10px;
+  }
+  .history-list{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:2px 16px;
+  }
+  .history-item{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    align-items:center;
+    gap:12px;
+    padding:12px 0;
+  }
+  .history-item + .history-item{border-top:1px solid var(--line);}
+  .h-day{font-size:16px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .h-date{font-size:13px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .h-detail{
+    font-size:14px; color:var(--muted);
+    font-variant-numeric:tabular-nums;
+    text-align:right;
+    overflow-wrap:anywhere;
+  }
+  .h-detail div + div{margin-top:2px;}
+  .h-del{
+    border:none; background:none;
+    color:var(--muted);
+    width:44px; height:44px; margin-right:-12px;
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700;
+  }
+  .h-del svg{width:18px; height:18px;}
+  .h-del.confirm{
+    width:auto; padding:0 12px; margin-right:0;
+    background:#C8321F; color:#FFFFFF;
+  }
+  .empty-hist{font-size:15px; color:var(--muted); padding:16px 0;}
+
+  .backup-row{display:flex; flex-wrap:wrap; gap:8px;}
+  .backup-row button, .backup-row label{
+    display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--line);
+    background:var(--surface);
+    border-radius:12px;
+    min-height:44px;
+    padding:8px 14px;
+    font-size:15px; font-weight:600;
+    cursor:pointer;
+  }
+  .backup-hint{font-size:13px; color:var(--muted); margin:10px 0 0;}
+  .loading{text-align:center; padding:40px 0; color:var(--muted);}
+
+  /* Beine: weichere Formen, Titel in Serifenschrift */
+  body[data-program="frau"] .hero-title{
+    font-family:ui-serif, "New York", "Iowan Old Style", Georgia, serif;
+    font-weight:700;
+    letter-spacing:0;
+  }
+  body[data-program="frau"] .set,
+  body[data-program="frau"] .adjust,
+  body[data-program="frau"] .history-list,
+  body[data-program="frau"] .prompt-card{border-radius:26px;}
+  body[data-program="frau"] .segmented{border-radius:999px;}
+  body[data-program="frau"] .tab-btn,
+  body[data-program="frau"] .complete-btn,
+  body[data-program="frau"] .pill,
+  body[data-program="frau"] .date-field input,
+  body[data-program="frau"] .backup-row button,
+  body[data-program="frau"] .backup-row label{border-radius:999px;}
+  body[data-program="frau"] .ex-field input{border-radius:999px;}
+  body[data-program="frau"] .bar,
+  body[data-program="frau"] .bar > i{height:8px; border-radius:4px;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
   }
 </style>
 </head>
-<body>
+<body data-program="leonard">
 <div class="wrap">
-  <div class="masthead">
+  <div class="topbar">
     <h1>Grundfitness</h1>
-    <div class="streak" id="streakLabel">–</div>
+    <div class="count" id="streakLabel"></div>
   </div>
-  <p class="sub">So / Di / Do — Bodyweight Basisprogramm</p>
 
-  <div class="tab-row">
-    <button class="tab-btn" id="tabLeonard">Oberkörper</button>
-    <button class="tab-btn" id="tabFrau">Beine</button>
+  <div class="segmented" role="tablist">
+    <button class="tab-btn" id="tabLeonard" role="tab">Oberkörper</button>
+    <button class="tab-btn" id="tabFrau" role="tab">Beine</button>
   </div>
 
   <div id="content" class="loading">Lade Fortschritt…</div>
 
-  <div class="history">
-    <h2>Verlauf</h2>
-    <div id="historyList"></div>
-    <div class="backup-row">
-      <button id="exportBtn">Backup speichern</button>
-      <button id="copyBtn">Kopieren</button>
-      <label for="importFile" id="importLabel">Backup laden</label>
-      <input type="file" id="importFile" accept="application/json" style="display:none">
-    </div>
+  <h2 class="section-title">Verlauf</h2>
+  <div id="historyList"></div>
+
+  <h2 class="section-title">Datensicherung</h2>
+  <div class="backup-row">
+    <button id="exportBtn">Backup speichern</button>
+    <button id="copyBtn">Kopieren</button>
+    <label for="importFile" id="importLabel">Backup laden</label>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
   </div>
+  <p class="backup-hint">Deine Daten liegen nur auf diesem Gerät. Ein Backup nach dem Training schützt vor Verlust.</p>
 </div>
 
 <script>
@@ -541,13 +648,110 @@ function toDateInputValue(d){
   return `${yyyy}-${mm}-${dd}`;
 }
 
+/* ==================== Bausteine der Oberfläche ==================== */
+
+const ICON_CHECK = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>';
+const ICON_CHEV = '<svg class="chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8l5 5 5-5"/></svg>';
+const ICON_X = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15"/></svg>';
+
 function exerciseRow(label, id, value, unit){
+  const unitLabel = unit === 's' ? 'Sek.' : 'Wdh.';
   return `
-    <div class="exercise-row">
-      <div class="name">${label}</div>
-      <input type="number" min="0" id="${id}" value="${value}">
-      <div class="unit">${unit}</div>
+    <label class="ex" for="${id}">
+      <span class="ex-name">${label}</span>
+      <span class="ex-field">
+        <input type="number" inputmode="numeric" min="0" id="${id}" value="${value}">
+        <span class="ex-unit">${unitLabel}</span>
+      </span>
+    </label>`;
+}
+
+// Eine Satz-Karte. Volle Sätze sind eingeklappt und zeigen ihre Werte in einer Zeile.
+function setCard(o){
+  return `
+    <details class="set" ${o.open ? 'open' : ''}>
+      <summary>
+        <span class="set-name">Satz ${o.num}</span>
+        <span class="set-sum">${o.summary}</span>
+        <span class="set-state${o.full ? ' full' : ''}">${o.full ? ICON_CHECK : ''}${o.stateText}${ICON_CHEV}</span>
+      </summary>
+      <div class="bar"><i style="width:${o.pct}%"></i></div>
+      <div class="set-body">${o.rows}${o.extra || ''}</div>
+    </details>`;
+}
+
+// Beim Auf- und Zuklappen die Kurzzeile aus den Feldern neu bilden (falls Zahlen geändert wurden).
+function bindSetCards(){
+  document.querySelectorAll('details.set').forEach(card => {
+    card.addEventListener('toggle', () => {
+      const vals = Array.from(card.querySelectorAll('.ex')).map(row => {
+        const isSeconds = row.querySelector('.ex-unit').textContent === 'Sek.';
+        return row.querySelector('input').value + (isSeconds ? 's' : '');
+      });
+      card.querySelector('.set-sum').textContent = vals.join('/');
+    });
+  });
+}
+
+// Trainings in dieser Woche (Woche beginnt am Sonntag, Ziel: 3).
+function weekHtml(){
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+  const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 7);
+  const n = activeBucket().history.filter(r => {
+    const d = new Date(r.date);
+    return d >= start && d < end;
+  }).length;
+  let dots = '';
+  for (let i = 0; i < 3; i++){ dots += `<span class="week-dot${i < n ? ' done' : ''}"></span>`; }
+  return `<span class="week"><span class="week-dots">${dots}</span><span>Woche: ${n} von 3</span></span>`;
+}
+
+function heroHtml(title){
+  return `
+    <h2 class="hero-title">${title}</h2>
+    <div class="hero-meta">
+      ${weekHtml()}
+      <span class="date-field"><input type="date" id="entryDate" value="${toDateInputValue(new Date())}" aria-label="Datum des Trainings"></span>
     </div>`;
+}
+
+let adjustOpen = false;
+try{ adjustOpen = localStorage.getItem('fitness-adjust-open') === '1'; }catch(e){}
+
+function adjustPanelHtml(hasUndo){
+  return `
+    <details class="adjust" id="adjustPanel" ${adjustOpen ? 'open' : ''}>
+      <summary>Plan anpassen ${ICON_CHEV}</summary>
+      <div class="adjust-body">
+        <div class="adjust-row">
+          <div class="adjust-text"><b>Wiederholungen</b><span>Letzten Satz leichter oder schwerer machen</span></div>
+          <div class="adjust-btns">
+            <button class="pill" id="minusBtn" aria-label="Eine Wiederholung weniger">−1</button>
+            <button class="pill" id="plusBtn" aria-label="Eine Wiederholung mehr">+1</button>
+          </div>
+        </div>
+        <div class="adjust-row">
+          <div class="adjust-text"><b>Sätze</b><span>Letzten Satz weglassen. Der Verlauf bleibt.</span></div>
+          <div class="adjust-btns">
+            <button class="pill" id="setBackBtn">Satz zurück</button>
+            ${hasUndo ? '<button class="pill" id="setFwdBtn">Satz fortführen</button>' : ''}
+          </div>
+        </div>
+      </div>
+    </details>`;
+}
+
+function bindAdjustPanel(){
+  const panel = document.getElementById('adjustPanel');
+  panel.addEventListener('toggle', () => {
+    adjustOpen = panel.open;
+    try{ localStorage.setItem('fitness-adjust-open', adjustOpen ? '1' : '0'); }catch(e){}
+  });
+}
+
+function ctaHtml(label){
+  return `<div class="cta-bar"><button class="complete-btn" id="completeBtn">${label}</button></div>`;
 }
 
 let state = { active: 'leonard', leonard: { currentDay: 1, history: [], pullUpStartDay: 1, program: freshProgram() }, frau: freshFrauState() };
@@ -665,17 +869,16 @@ async function saveState(){
 function renderDay(){
   const program = state.leonard.program;
   const day = state.leonard.currentDay;
-  const today = new Date();
-  const todayInputVal = toDateInputValue(today);
 
   if (program.pendingSetPrompt){
     const nextSetNum = program.sets.length + 1;
     document.getElementById('content').innerHTML = `
       <div class="prompt-card">
-        <p>Alle aktuellen Sätze stehen bei 20 Wdh.<br>Satz ${nextSetNum} zusätzlich starten (bei 10 Wdh.)?</p>
+        <h2>Alle Sätze sind voll</h2>
+        <p>Möchtest du Satz ${nextSetNum} dazunehmen? Er startet bei 10 Wdh.</p>
         <div class="prompt-btns">
-          <button class="yes" id="promptYes">Ja</button>
-          <button class="no" id="promptNo">Nein</button>
+          <button class="yes" id="promptYes">Ja, Satz ${nextSetNum} starten</button>
+          <button class="no" id="promptNo">Nein, so weitermachen</button>
         </div>
       </div>
     `;
@@ -690,47 +893,40 @@ function renderDay(){
     const s = idx + 1;
     const plank = repsToPlank(set.reps);
     const isExtra = idx >= 4;
-    setsHtml += `<div class="set-block">`;
-    if (numSets > 1){
-      setsHtml += `<div class="set-label-row">
-        <div class="set-label">Satz ${s}</div>
-        ${isExtra ? `<button class="set-remove" data-idx="${idx}">Satz entfernen</button>` : ''}
-      </div>`;
-    }
-    setsHtml += exerciseRow('Crunches', `crunches_${s}`, set.reps, 'x');
-    setsHtml += exerciseRow('Push-Ups', `pushups_${s}`, set.reps, 'x');
-    setsHtml += exerciseRow('Assisted Leg Raises', `legraises_${s}`, set.reps, 'x');
-    setsHtml += exerciseRow('Plank (low)', `plank_${s}`, plank, 's');
-    setsHtml += exerciseRow('Klimmzüge', `pullups_${s}`, set.pu, 'x');
-    setsHtml += `</div>`;
-    if (numSets > 1 && s < numSets){
-      setsHtml += `<div class="rest-row">— 1 min Pause —</div>`;
+    const full = set.reps >= 20;
+    let rows = '';
+    rows += exerciseRow('Crunches', `crunches_${s}`, set.reps, 'x');
+    rows += exerciseRow('Push-Ups', `pushups_${s}`, set.reps, 'x');
+    rows += exerciseRow('Assisted Leg Raises', `legraises_${s}`, set.reps, 'x');
+    rows += exerciseRow('Plank (low)', `plank_${s}`, plank, 's');
+    rows += exerciseRow('Klimmzüge', `pullups_${s}`, set.pu, 'x');
+    setsHtml += setCard({
+      num: s,
+      open: !full || s === numSets,
+      full,
+      stateText: full ? (set.reps > 20 ? `${set.reps} Wdh.` : 'voll') : `${set.reps} von 20`,
+      pct: Math.min(100, Math.round(set.reps / 20 * 100)),
+      summary: `${set.reps}/${set.reps}/${set.reps}/${plank}s/${set.pu}`,
+      rows,
+      extra: isExtra ? `<button class="set-remove" data-idx="${idx}">Satz entfernen</button>` : ''
+    });
+    if (s < numSets){
+      setsHtml += `<div class="rest">1 min Pause</div>`;
     }
   });
 
   let noteHtml = '';
   if (program.tierUpgradeQueue.length > 0){
     const nextIdx = program.tierUpgradeQueue[0];
-    noteHtml = `<div class="day-note">Tier-Sprung läuft: Satz ${nextIdx + 1} wird heute auf ${tierMaxReps(program.tier + 1)} Wdh. umgestellt.</div>`;
+    noteHtml = `<div class="note">Nächste Stufe: Satz ${nextIdx + 1} steigt nach diesem Training auf ${tierMaxReps(program.tier + 1)} Wdh.</div>`;
   }
 
   document.getElementById('content').innerHTML = `
-    <div class="day-card">
-      <div class="day-title-row">
-        <div class="day-title">Tag ${day}</div>
-        <div class="day-date"><input type="date" id="entryDate" value="${todayInputVal}"></div>
-      </div>
-      ${noteHtml}
-      <div style="height:14px"></div>
-      ${setsHtml}
-      <button class="complete-btn" id="completeBtn">Tag abschließen ✓</button>
-      <div class="adjust-row">
-        <button id="minusBtn">−1 Wdh.</button>
-        <button id="plusBtn">+1 Wdh.</button>
-        <button id="setBackBtn">Satz zurück</button>
-        ${(state.leonard.undo && state.leonard.undo.length) ? '<button id="setFwdBtn">Satz fortführen</button>' : ''}
-      </div>
-    </div>
+    ${heroHtml('Tag ' + day)}
+    ${noteHtml}
+    ${setsHtml}
+    ${adjustPanelHtml(state.leonard.undo && state.leonard.undo.length)}
+    ${ctaHtml('Tag abschließen')}
   `;
 
   document.getElementById('completeBtn').addEventListener('click', completeDay);
@@ -742,6 +938,8 @@ function renderDay(){
   bindConfirmButton('setBackBtn', stepBackLeonard);
   const fwdL = document.getElementById('setFwdBtn');
   if (fwdL) fwdL.addEventListener('click', undoStepBackLeonard);
+  bindSetCards();
+  bindAdjustPanel();
 }
 
 // "−1 / +1 Wdh." (Oberkörper): Wiederholungen des wachsenden (letzten) Satzes anpassen.
@@ -892,7 +1090,7 @@ async function completeDay(){
   await saveState();
 
   const btn = document.getElementById('completeBtn');
-  btn.textContent = 'Gespeichert ✓';
+  btn.innerHTML = ICON_CHECK + 'Gespeichert';
   btn.classList.add('done');
   setTimeout(() => { render(); renderHistory(); }, 500);
 }
@@ -901,47 +1099,40 @@ async function completeDay(){
 
 function renderFrauDay(){
   const frau = state.frau;
-  const today = new Date();
-  const todayInputVal = toDateInputValue(today);
   const numSets = frau.sets.length;
 
   let setsHtml = '';
   frau.sets.forEach((set, idx) => {
     const s = idx + 1;
-    setsHtml += `<div class="set-block">`;
-    if (numSets > 1){
-      setsHtml += `<div class="set-label-row"><div class="set-label">Satz ${s}</div></div>`;
-    }
-    setsHtml += exerciseRow('Crunches', `frau_crunches_${s}`, set.crunches, 'x');
-    setsHtml += exerciseRow(frau.squatVariant, `frau_squat_${s}`, set.squat, 'x');
-    setsHtml += exerciseRow(frau.gluteVariant, `frau_glute_${s}`, set.glute, 'x');
-    setsHtml += exerciseRow('Plank', `frau_plank_${s}`, set.plank, 's');
-    setsHtml += exerciseRow('Push-Ups', `frau_pushup_${s}`, set.pushup, 'x');
-    setsHtml += `</div>`;
-    if (numSets > 1 && s < numSets){
-      setsHtml += `<div class="rest-row">— 1 min Pause —</div>`;
+    const full = set.crunches >= 20;
+    let rows = '';
+    rows += exerciseRow('Crunches', `frau_crunches_${s}`, set.crunches, 'x');
+    rows += exerciseRow(frau.squatVariant, `frau_squat_${s}`, set.squat, 'x');
+    rows += exerciseRow(frau.gluteVariant, `frau_glute_${s}`, set.glute, 'x');
+    rows += exerciseRow('Plank', `frau_plank_${s}`, set.plank, 's');
+    rows += exerciseRow('Push-Ups', `frau_pushup_${s}`, set.pushup, 'x');
+    setsHtml += setCard({
+      num: s,
+      open: !full || s === numSets,
+      full,
+      stateText: full ? 'voll' : `${set.crunches} von 20`,
+      pct: Math.min(100, Math.round(set.crunches / 20 * 100)),
+      summary: `${set.crunches}/${set.squat}/${set.glute}/${set.plank}s/${set.pushup}`,
+      rows
+    });
+    if (s < numSets){
+      setsHtml += `<div class="rest">1 min Pause</div>`;
     }
   });
 
-  const noteHtml = frau.transitionNote ? `<div class="day-note">${frau.transitionNote}</div>` : '';
+  const noteHtml = frau.transitionNote ? `<div class="note">${frau.transitionNote}</div>` : '';
 
   document.getElementById('content').innerHTML = `
-    <div class="day-card">
-      <div class="day-title-row">
-        <div class="day-title">Session ${frau.session}</div>
-        <div class="day-date"><input type="date" id="entryDate" value="${todayInputVal}"></div>
-      </div>
-      ${noteHtml}
-      <div style="height:14px"></div>
-      ${setsHtml}
-      <button class="complete-btn" id="completeBtn">Session abschließen ✓</button>
-      <div class="adjust-row">
-        <button id="minusBtn">−1 Wdh.</button>
-        <button id="plusBtn">+1 Wdh.</button>
-        <button id="setBackBtn">Satz zurück</button>
-        ${(state.frau.undo && state.frau.undo.length) ? '<button id="setFwdBtn">Satz fortführen</button>' : ''}
-      </div>
-    </div>
+    ${heroHtml('Session ' + frau.session)}
+    ${noteHtml}
+    ${setsHtml}
+    ${adjustPanelHtml(state.frau.undo && state.frau.undo.length)}
+    ${ctaHtml('Session abschließen')}
   `;
 
   document.getElementById('completeBtn').addEventListener('click', completeFrauDay);
@@ -950,6 +1141,8 @@ function renderFrauDay(){
   bindConfirmButton('setBackBtn', stepBackFrau);
   const fwdF = document.getElementById('setFwdBtn');
   if (fwdF) fwdF.addEventListener('click', undoStepBackFrau);
+  bindSetCards();
+  bindAdjustPanel();
 }
 
 // "Satz zurück" (Beine): letzten Satz entfernen, bei nur einem Satz diesen auf den Start zurücksetzen.
@@ -1015,7 +1208,7 @@ async function completeFrauDay(){
   await saveState();
 
   const btn = document.getElementById('completeBtn');
-  btn.textContent = 'Gespeichert ✓';
+  btn.innerHTML = ICON_CHECK + 'Gespeichert';
   btn.classList.add('done');
   setTimeout(() => { render(); renderHistory(); }, 500);
 }
@@ -1027,13 +1220,19 @@ function activeBucket(){
 }
 
 function render(){
+  document.body.dataset.program = state.active;
+  document.getElementById('content').classList.remove('loading');
   if (state.active === 'leonard'){ renderDay(); } else { renderFrauDay(); }
-  document.getElementById('streakLabel').textContent = activeBucket().history.length + ' Einheiten';
+  const n = activeBucket().history.length;
+  document.getElementById('streakLabel').textContent = n === 1 ? '1 Training' : n + ' Trainings';
 }
 
 function updateTabUI(){
-  document.getElementById('tabLeonard').classList.toggle('active', state.active === 'leonard');
-  document.getElementById('tabFrau').classList.toggle('active', state.active === 'frau');
+  const tabs = { leonard: document.getElementById('tabLeonard'), frau: document.getElementById('tabFrau') };
+  Object.keys(tabs).forEach(key => {
+    tabs[key].classList.toggle('active', state.active === key);
+    tabs[key].setAttribute('aria-selected', state.active === key ? 'true' : 'false');
+  });
 }
 
 async function switchProgram(which){
@@ -1055,32 +1254,35 @@ function renderHistory(){
   const dayLabel = state.active === 'leonard' ? 'Tag' : 'Session';
 
   if (bucket.history.length === 0){
-    list.innerHTML = `<div class="empty-hist">Noch keine Einheit eingetragen.</div>`;
+    list.innerHTML = `<div class="history-list"><div class="empty-hist">Noch kein Training eingetragen. Sobald du eins abschließt, steht es hier.</div></div>`;
     return;
   }
 
-  list.innerHTML = bucket.history.map((rec, idx) => {
-    let detail;
+  const items = bucket.history.map((rec, idx) => {
+    let lines;
     if (state.active === 'leonard'){
-      detail = rec.sets.map(s => `${s.crunches}/${s.pushups}/${s.legraises}/${s.plank}s${s.pullups !== undefined ? '/' + s.pullups : ''}`).join(' + ');
+      lines = rec.sets.map(s => `${s.crunches}/${s.pushups}/${s.legraises}/${s.plank}s${s.pullups !== undefined ? '/' + s.pullups : ''}`);
     } else if (Array.isArray(rec.sets) && rec.sets.length && rec.sets[0].plank !== undefined){
-      detail = rec.sets.map(s => `${s.crunches}/${s.squat}/${s.glute}/${s.plank}s/${s.pushup}`).join(' + ');
+      lines = rec.sets.map(s => `${s.crunches}/${s.squat}/${s.glute}/${s.plank}s/${s.pushup}`);
     } else if (Array.isArray(rec.sets)){
       // Verlaufseintrag aus dem Zwischenstand (Plank/Push-Ups noch satzunabhängig gespeichert)
-      detail = rec.sets.map(s => `${s.crunches}/${s.squat}/${s.glute}`).join(' + ') + ` + ${rec.plank}s/${rec.pushup}`;
+      lines = rec.sets.map(s => `${s.crunches}/${s.squat}/${s.glute}`).concat([`${rec.plank}s/${rec.pushup}`]);
     } else {
       // Verlaufseintrag aus der alten (Nicht-Satz-)Version von "Beine"
-      detail = `${rec.crunches}/${rec.squat}/${rec.glute}/${rec.plank}s/${rec.pushup}`;
+      lines = [`${rec.crunches}/${rec.squat}/${rec.glute}/${rec.plank}s/${rec.pushup}`];
     }
     const isPending = pendingDeleteId === rec.id;
     return `
       <div class="history-item">
-        <div class="h-day">${dayLabel} ${rec.day}</div>
-        <div class="h-date">${fmtDate(rec.date)}</div>
-        <div class="h-detail">${detail}</div>
-        <button class="h-del${isPending ? ' confirm' : ''}" data-id="${rec.id}" data-idx="${idx}">${isPending ? 'Sicher?' : '✕'}</button>
+        <div>
+          <div class="h-day">${dayLabel} ${rec.day}</div>
+          <div class="h-date">${fmtDate(rec.date)}</div>
+        </div>
+        <div class="h-detail">${lines.map(l => `<div>${l}</div>`).join('')}</div>
+        <button class="h-del${isPending ? ' confirm' : ''}" data-id="${rec.id}" data-idx="${idx}" aria-label="Eintrag löschen">${isPending ? 'Löschen?' : ICON_X}</button>
       </div>`;
   }).join('');
+  list.innerHTML = `<div class="history-list">${items}</div>`;
 
   list.querySelectorAll('.h-del').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1155,7 +1357,7 @@ async function copyBackup(){
     btn.textContent = 'Kopiert ✓';
     setTimeout(() => { btn.textContent = original; }, 1500);
   }catch(e){
-    alert('Kopieren nicht möglich. Bitte manuell aus der Konsole exportieren.');
+    alert('Kopieren hat nicht geklappt. Nimm stattdessen "Backup speichern".');
   }
 }
 
@@ -1201,6 +1403,12 @@ async function init(){
   });
 }
 init();
+
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
