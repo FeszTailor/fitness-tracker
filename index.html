@@ -194,8 +194,9 @@
 
   .adjust-row{
     display:flex;
+    flex-wrap:wrap;
     justify-content:center;
-    gap:14px;
+    gap:4px 14px;
     margin-top:10px;
   }
   .adjust-row button{
@@ -408,13 +409,14 @@ function freshProgram(){
   };
 }
 
-function pullUpCap(program){
-  return program.sets.length + 4;
+// Klimmzug-Deckel pro Satz: runde Zahlen statt "Sätze + 4".
+// Satz bis 20 Wdh.: max. 5 Klimmzüge. Satz auf der höheren Stufe (25 Wdh.): max. 10.
+function pullUpCap(set){
+  return set.reps > 20 ? 10 : 5;
 }
 
 // Wird nach jedem abgeschlossenen Tag aufgerufen und berechnet den Plan für den NÄCHSTEN Tag.
 function advanceProgram(program, nextDay){
-  const capBeforeToday = pullUpCap(program);
   let justJumpedIdx = null;
 
   if (program.tierUpgradeQueue.length > 0){
@@ -434,14 +436,13 @@ function advanceProgram(program, nextDay){
       }
     });
 
-    if (justCompletedIdx !== null){
-      const total = program.sets.length;
-      const fullCount = program.sets.filter(s => s.reps === 20).length;
-      if (total < 4){
-        program.sets.push({ reps: 10, pu: 1, puLastInc: nextDay });
-      } else if (fullCount === total){
-        program.pendingSetPrompt = true;
-      }
+    const total = program.sets.length;
+    const allFull = program.sets.every(s => s.reps >= 20);
+    if (allFull && total < 4){
+      // Satz 2–4 automatisch starten (greift auch nach "Satz zurück", wenn kein Satz mehr wächst)
+      program.sets.push({ reps: 10, pu: 1, puLastInc: nextDay });
+    } else if (justCompletedIdx !== null && allFull){
+      program.pendingSetPrompt = true;
     }
 
     if (program.tier === 0 &&
@@ -455,7 +456,7 @@ function advanceProgram(program, nextDay){
     if (i === justJumpedIdx){
       set.pu = 5;
       set.puLastInc = nextDay;
-    } else if (nextDay - set.puLastInc >= 2 && set.pu < capBeforeToday){
+    } else if (nextDay - set.puLastInc >= 2 && set.pu < pullUpCap(set)){
       set.pu += 1;
       set.puLastInc = nextDay;
     }
@@ -521,10 +522,7 @@ function advanceFrau(frau, nextSession){
   set.squat += 2;
   set.glute += 2;
   set.plank += 2;
-  if (nextSession - set.pushupLastInc >= 2){
-    set.pushup += 1;
-    set.pushupLastInc = nextSession;
-  }
+  set.pushup = frauPushupsFor(set.crunches);
 
   frau.session = nextSession;
 }
@@ -579,6 +577,9 @@ function migrateLeonardBucket(b){
     delete b.program.pullUpCap;
     delete b.program.pullUpLastIncDay;
     changed = true;
+  }
+  if (b.program && Array.isArray(b.program.sets) && typeof b.program.sets[0] === 'object'){
+    b.program.sets.forEach(s => { const cap = pullUpCap(s); if (s.pu > cap){ s.pu = cap; changed = true; } });
   }
   return changed;
 }
@@ -724,22 +725,114 @@ function renderDay(){
       ${setsHtml}
       <button class="complete-btn" id="completeBtn">Tag abschließen ✓</button>
       <div class="adjust-row">
-        <button id="prevDayBtn">Tag zurück</button>
-        <button id="nextDayBtn">Tag überspringen</button>
+        <button id="minusBtn">−1 Wdh.</button>
+        <button id="plusBtn">+1 Wdh.</button>
+        <button id="setBackBtn">Satz zurück</button>
+        ${(state.leonard.undo && state.leonard.undo.length) ? '<button id="setFwdBtn">Satz fortführen</button>' : ''}
       </div>
     </div>
   `;
 
   document.getElementById('completeBtn').addEventListener('click', completeDay);
-  document.getElementById('prevDayBtn').addEventListener('click', () => {
-    if (state.leonard.currentDay > 1){ state.leonard.currentDay--; saveState(); renderDay(); }
-  });
-  document.getElementById('nextDayBtn').addEventListener('click', () => {
-    state.leonard.currentDay++; saveState(); renderDay();
-  });
+  document.getElementById('minusBtn').addEventListener('click', () => adjustLeonard(-1));
+  document.getElementById('plusBtn').addEventListener('click', () => adjustLeonard(1));
   document.querySelectorAll('.set-remove').forEach(btn => {
     btn.addEventListener('click', () => removeSet(Number(btn.dataset.idx)));
   });
+  bindConfirmButton('setBackBtn', stepBackLeonard);
+  const fwdL = document.getElementById('setFwdBtn');
+  if (fwdL) fwdL.addEventListener('click', undoStepBackLeonard);
+}
+
+// "−1 / +1 Wdh." (Oberkörper): Wiederholungen des wachsenden (letzten) Satzes anpassen.
+// Plank läuft automatisch mit (Wdh. x 2). Tageszähler und Verlauf bleiben unverändert.
+async function adjustLeonard(delta){
+  const program = state.leonard.program;
+  const set = program.sets[program.sets.length - 1];
+  if (set.reps > 20) return; // Sätze der höheren Stufe werden nicht verstellt
+  set.reps = Math.max(1, Math.min(20, set.reps + delta));
+  await saveState();
+  renderDay();
+}
+
+// Beine: Push-Ups hängen an den Crunches (alle 2 Wdh. ein Push-Up mehr, Start bei 5).
+function frauPushupsFor(crunches){
+  return Math.max(1, 5 + Math.floor((crunches - 10) / 2));
+}
+
+// "−1 / +1 Wdh." (Beine): letzten Satz eine Stufe hoch oder runter.
+// Crunches ±1, Squats/Glute Bridges/Plank ±2, Push-Ups laufen mit.
+async function adjustFrau(delta){
+  const frau = state.frau;
+  const set = frau.sets[frau.sets.length - 1];
+  const newCrunches = Math.max(1, Math.min(20, set.crunches + delta));
+  const step = newCrunches - set.crunches;
+  if (step === 0) return;
+  set.crunches = newCrunches;
+  set.squat = Math.max(2, set.squat + step * 2);
+  set.glute = Math.max(2, set.glute + step * 2);
+  set.plank = Math.max(2, set.plank + step * 2);
+  set.pushup = frauPushupsFor(set.crunches);
+  await saveState();
+  renderFrauDay();
+}
+
+// Knopf mit Sicherheitsabfrage: 1. Tippen zeigt "Sicher?", 2. Tippen innerhalb von 3 Sekunden führt aus.
+function bindConfirmButton(id, action){
+  const btn = document.getElementById(id);
+  const original = btn.textContent;
+  let armed = false;
+  btn.addEventListener('click', () => {
+    if (armed){ action(); return; }
+    armed = true;
+    btn.textContent = 'Sicher?';
+    setTimeout(() => {
+      if (armed && document.body.contains(btn)){ armed = false; btn.textContent = original; }
+    }, 3000);
+  });
+}
+
+// "Satz zurück" (Oberkörper): letzten Satz entfernen, bei nur einem Satz diesen auf den Start zurücksetzen.
+// Verlauf und Tageszähler bleiben unverändert.
+async function stepBackLeonard(){
+  // Stand vorher merken, damit "Satz fortführen" ihn wiederherstellen kann
+  if (!Array.isArray(state.leonard.undo)) state.leonard.undo = [];
+  state.leonard.undo.push({ program: JSON.parse(JSON.stringify(state.leonard.program)), day: state.leonard.currentDay });
+  const program = state.leonard.program;
+  program.pendingSetPrompt = false;
+  program.tierUpgradeQueue = [];
+  if (program.sets.length > 1){
+    program.sets.pop();
+  } else {
+    program.sets = [ { reps: 10, pu: 1, puLastInc: state.leonard.currentDay } ];
+  }
+  if (program.sets.length < 4){
+    // unterhalb von 4 Sätzen gibt es keine höhere Stufe -> zurück auf Stufe 0 (max. 20 Wdh.)
+    program.tier = 0;
+    program.sets.forEach(s => { if (s.reps > 20) s.reps = 20; });
+  }
+  program.sets.forEach(s => { const cap = pullUpCap(s); if (s.pu > cap) s.pu = cap; });
+  await saveState();
+  renderDay();
+}
+
+
+// "Satz fortführen" (Oberkörper): so weitermachen, als hätte es das letzte "Satz zurück" nie gegeben.
+// Stand von damals holen und für jedes seitdem abgeschlossene Training normal weiterzählen
+// (Satz 2 bei 14 zurückgedreht, 1 Training gemacht -> Satz 2 geht bei 15 weiter).
+async function undoStepBackLeonard(){
+  const undo = state.leonard.undo;
+  if (!Array.isArray(undo) || undo.length === 0) return;
+  const snap = undo.pop();
+  const program = snap.program || snap; // ältere Einträge ohne Tag
+  const fromDay = snap.day || state.leonard.currentDay;
+  for (let d = fromDay + 1; d <= state.leonard.currentDay; d++){
+    if (program.pendingSetPrompt) program.pendingSetPrompt = false;
+    advanceProgram(program, d);
+  }
+  state.leonard.program = program;
+  await saveState();
+  renderDay();
 }
 
 async function respondToSetPrompt(addSet){
@@ -829,19 +922,55 @@ function renderFrauDay(){
       ${setsHtml}
       <button class="complete-btn" id="completeBtn">Session abschließen ✓</button>
       <div class="adjust-row">
-        <button id="prevDayBtn">Session zurück</button>
-        <button id="nextDayBtn">Session überspringen</button>
+        <button id="minusBtn">−1 Wdh.</button>
+        <button id="plusBtn">+1 Wdh.</button>
+        <button id="setBackBtn">Satz zurück</button>
+        ${(state.frau.undo && state.frau.undo.length) ? '<button id="setFwdBtn">Satz fortführen</button>' : ''}
       </div>
     </div>
   `;
 
   document.getElementById('completeBtn').addEventListener('click', completeFrauDay);
-  document.getElementById('prevDayBtn').addEventListener('click', () => {
-    if (state.frau.session > 1){ state.frau.session--; saveState(); renderFrauDay(); }
-  });
-  document.getElementById('nextDayBtn').addEventListener('click', () => {
-    state.frau.session++; saveState(); renderFrauDay();
-  });
+  document.getElementById('minusBtn').addEventListener('click', () => adjustFrau(-1));
+  document.getElementById('plusBtn').addEventListener('click', () => adjustFrau(1));
+  bindConfirmButton('setBackBtn', stepBackFrau);
+  const fwdF = document.getElementById('setFwdBtn');
+  if (fwdF) fwdF.addEventListener('click', undoStepBackFrau);
+}
+
+// "Satz zurück" (Beine): letzten Satz entfernen, bei nur einem Satz diesen auf den Start zurücksetzen.
+// Übungsnamen (z. B. Bulgarian Split Squats) bleiben, Verlauf und Session-Zähler auch.
+async function stepBackFrau(){
+  const frau = state.frau;
+  // Stand vorher merken, damit "Satz fortführen" ihn wiederherstellen kann
+  if (!Array.isArray(frau.undo)) frau.undo = [];
+  frau.undo.push(JSON.parse(JSON.stringify({ sets: frau.sets, transitionNote: frau.transitionNote, session: frau.session })));
+  frau.transitionNote = null;
+  if (frau.sets.length > 1){
+    frau.sets.pop();
+  } else {
+    frau.sets = [ freshFrauSet(frau.session) ];
+  }
+  await saveState();
+  renderFrauDay();
+}
+
+// "Satz fortführen" (Beine): letztes "Satz zurück" aufheben und normal weiterzählen.
+async function undoStepBackFrau(){
+  const frau = state.frau;
+  if (!Array.isArray(frau.undo) || frau.undo.length === 0) return;
+  const snap = frau.undo.pop();
+  const current = frau.session;
+  frau.sets = snap.sets;
+  frau.transitionNote = snap.transitionNote;
+  // für jede seitdem abgeschlossene Session normal weiterzählen
+  const fromSession = snap.session || current;
+  for (let n = fromSession + 1; n <= current; n++){
+    advanceFrau(frau, n);
+  }
+  frau.session = current;
+  await saveState();
+  renderFrauDay();
 }
 
 async function completeFrauDay(){
